@@ -12,9 +12,14 @@
 
 ### thread库相关的接口
 - std::thread::join
-- std::thread::detach
+- std::thread::detach // 分离线程，资源由操作系统自动回收
 - std::thread::joinable
+    - joinable\(\) == false 的场景：线程对象没有关联任何线程、线程已经结束了、线程已经detach了，线程被移动
 - std::thread::get_id
+
+### thread对象的使用方法
+- std::thread t(func, args...);
+- 如果主线程结束之前没有调用join\(\)等待子线程结束，主线程在结束的同时可能会强制终止所有未完成的子线程，导致内存泄漏等问题；可以引用RAII机制封装ThreadGuard类，在析构函数中调用thread::join，确保在主线程结束前会调用子线程的join函数
 
 # \<mutex\>
 - 互斥锁：当多个线程访问共享资源时，需要使用互斥锁来防止数据竞争
