@@ -18,6 +18,7 @@
 - 可以通过调用 make_shared\<T\> 或者 在shared_ptr\<T\> 的构造函数中传入一个原始指针的方式来创建 shared_ptr
 - shared_ptr 实例管理着一个**引用计数 reference count**，记录着有多少个 shared_ptr 实例指向同一块内存，当计数器变为0，对应内存就会被释放
   - 管理两块空间：用于对象数据保存 & 控制块
+  - 该功能是通过shared_ptr的析构函数实现的；析构函数会递减count的值，当count的值变为0时，就会销毁对象并释放所占用的内存空间
 - 使用智能指针应当遵循原则：不使用 new 出来的指针，因为智能指针的析构函数中默认会调用 delete 来释放内存，动态空间的申请和释放应该统一交给智能指针来管理
 - reset接口，可以重置 shared_ptr 所管理的内置指针，并且指定删除原内置指针时用的删除器
 - 如果要使用shared_ptr来管理动态数组的话
@@ -34,13 +35,23 @@
 
 ### weak_ptr
 - 指向一个 shared_ptr 管理的对象，但只跟该对象弱绑定
+- weak_ptr主要用于解决shared_ptr可能导致的循环引用问题
 - 可以通过直接在构造函数中传递 shared_ptr 或者 operator= 的方式给 weak_ptr 指定要观察的 shared_ptr
 - 接口
   - weak_ptr\<T\>::reset\(\)
   - weak_ptr\<T\>::use_count\(\)
   - weak_ptr\<T\>::expired\(\)，判断该 weak_ptr 是否指向有效的 shared_ptr
   - weak_ptr\<T\>::lock\(\)，如果指向 valid 的 shared_ptr，则返回该 shared_ptr，否则返回空的 shared_ptr
- 
+
+### shared_ptr使用时潜在的内存问题
+#### shared_ptr互相引用
+- std::shared_ptr互相引用时会导致引用计数无法归零，内存泄漏
+- 例如双向链表中，相邻的两个节点的pre和next互相指向对方时
+#### 非内存泄漏
+- shared_ptr默认使用delete来释放所管理的堆内存空间
+- 但如果shared_ptr所管理的资源是文件句柄、网络连接sockte等，那么就需要自定义删除器
+
+
 # Others
 ### 尾后指针
 - 指向容器中最后一个元素之后的位置，而不是最后一个元素本身
